@@ -12,17 +12,7 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader'
 import GUI from "lil-gui";
 
 export default function SolarSystem() {
-
-  const gui = new GUI({
-    width: 300,
-    title: "DubugUI",
-    closeFolders: false,
-  });
-
-  const guiProps = {};
-  const scrol = gui.addFolder("FOlder");
-
-
+ 
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [loadingProgress, setLoadingProgress] = useState(0)
@@ -164,10 +154,10 @@ export default function SolarSystem() {
     }
 
     // Orbital Rings
-    const createOrbitalRing = (radius: number) => {
+    const createOrbitalRing = (radius: number, color: number) => {
       const geometry = new THREE.RingGeometry(radius - 0.1, radius + 0.1, 100)
       const material = new THREE.MeshBasicMaterial({
-        color: 0x666666,
+        color: color,
         transparent: true,
         opacity: 0.3,
         side: THREE.DoubleSide
@@ -664,23 +654,36 @@ export default function SolarSystem() {
           }
 
           // Add orbital ring
-          // if (planet.distance > 0) {
-          //   if (planet.name === 'Earth') {
-          //     // const ring = createEarthOrbitalRing(planet.distance)
-          //     // scene.add(ring)
-          //     const inclinedRing = createInclinedOrbitalRing(planet.distance, 0); // 23.5° inclination
-          //     scene.add(inclinedRing);
-          //   } else if (planet.name === 'Mercury') {
-          //     const inclinedRing = createMercuryOrbitalRing(planet.distance, 0); // 23.5° inclination
-          //     scene.add(inclinedRing);
-          //   } else if (planet.name === 'Venus') {
-          //     const inclinedRing = createVenusOrbitalRing(planet.distance, 0); // 23.5° inclination
-          //     scene.add(inclinedRing);
-          //   } else {
-          //     const ring = createOrbitalRing(planet.distance)
-          //     scene.add(ring)
-          //   }
-          // }
+          if (planet.distance > 0) {
+            if (planet.name === 'Mercury') {
+              const ring = createOrbitalRing(planet.distance,0x8105b3)
+              scene.add(ring)
+            } else if (planet.name === 'Venus') {
+              const ring = createOrbitalRing(planet.distance,0xad8e03)
+              scene.add(ring)
+            } else if (planet.name === 'Earth') {
+              const ring = createOrbitalRing(planet.distance,0x0371ad)
+              scene.add(ring)
+            } else if (planet.name === 'Mars') {
+              const ring = createOrbitalRing(planet.distance,0xad6303)
+              scene.add(ring)
+            } else if (planet.name === 'Jupiter') {
+              const ring = createOrbitalRing(planet.distance,0xde9a07)
+              scene.add(ring)
+            } else if (planet.name === 'Saturn') {
+              const ring = createOrbitalRing(planet.distance,0xb8af06)
+              scene.add(ring)
+            } else if (planet.name === 'Uranus') {
+              const ring = createOrbitalRing(planet.distance,0x0680b8)
+              scene.add(ring)
+            } else if (planet.name === 'Neptune') {
+              const ring = createOrbitalRing(planet.distance,0x064ab8)
+              scene.add(ring)
+            } else {
+              const ring = createOrbitalRing(planet.distance,0x8105b3)
+              scene.add(ring)
+            }
+          }
 
           // Add moon if planet has one
           if (planet.hasMoon) {
