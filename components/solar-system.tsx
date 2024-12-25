@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { TextureLoader } from 'three'
 import { useLoader } from '@react-three/fiber'
@@ -8,9 +8,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
-import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader'
-import GUI from "lil-gui";
-
 export default function SolarSystem() {
  
   const containerRef = useRef<HTMLDivElement>(null)
@@ -19,18 +16,17 @@ export default function SolarSystem() {
 
   // Load all textures at component level
   const textures = {
-    sun: useLoader(TextureLoader, '/2k_sun.jpg'),
-    mercury: useLoader(TextureLoader, '/2k_mercury.jpg'),
-    venus: useLoader(TextureLoader, '/2k_venus_surface.jpg'),
-    earth: useLoader(TextureLoader, '/2k_earth.jpg'),
-    mars: useLoader(TextureLoader, '/2k_mars.jpg'),
-    jupiter: useLoader(TextureLoader, '/2k_jupiter.jpg'),
-    saturn: useLoader(TextureLoader, '/2k_saturn.jpg'),
+    sun: useLoader(TextureLoader, '/8k_sun.jpg'),
+    mercury: useLoader(TextureLoader, '/8k_mercury.jpg'),
+    venus: useLoader(TextureLoader, '/8k_venus_surface.jpg'),
+    earth: useLoader(TextureLoader, '/8k_earth_daymap.jpg'),
+    mars: useLoader(TextureLoader, '/8k_mars.jpg'),
+    jupiter: useLoader(TextureLoader, '/8k_jupiter.jpg'),
+    saturn: useLoader(TextureLoader, '/8k_saturn.jpg'),
     uranus: useLoader(TextureLoader, '/2k_uranus.jpg'),
     neptune: useLoader(TextureLoader, '/2k_neptune.jpg'),
-    moon: useLoader(TextureLoader, '/2k_moon.jpg'),
-    saturnRing: useLoader(TextureLoader, '/2k_saturn_ring_alpha.png'),
-    // stars: useLoader(EXRLoader, '/starmap_2020_16k.exr')
+    moon: useLoader(TextureLoader, '/8k_moon.jpg'),
+    stars: useLoader(TextureLoader, '/8k_stars_milky_way.jpg')
   }
 
   useEffect(() => {
@@ -43,7 +39,7 @@ export default function SolarSystem() {
       75,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000
+      1200
     )
     camera.position.z = 50
     camera.position.y = 30
@@ -76,7 +72,7 @@ export default function SolarSystem() {
     scene.add(ambientLight)
 
     // Add spherical sunlight (point light)
-    const sunlight = new THREE.PointLight(0xffffff, 5, 100000, 0.6);
+    const sunlight = new THREE.PointLight(0xffffff, 10, 100000, 0.6);
     sunlight.position.set(0, 0, 0);
     scene.add(sunlight);
     sunlight.castShadow = true
@@ -92,35 +88,40 @@ export default function SolarSystem() {
     )
     composer.addPass(bloomPass)
 
-    // Stars background
-    const starsGeometry = new THREE.BufferGeometry()
-    const starsCount = 50000
-    const starsPositions = new Float32Array(starsCount * 3)
+    // // Stars background
+    // const starsGeometry = new THREE.BufferGeometry()
+    // const starsCount = 500
+    // const starsPositions = new Float32Array(starsCount * 3)
+    // const starsColors = new Float32Array(starsCount * 3)
 
-    for (let i = 0; i < starsCount * 3; i += 3) {
-      starsPositions[i] = (Math.random() - 0.5) * 1000
-      starsPositions[i + 1] = (Math.random() - 0.5) * 1000
-      starsPositions[i + 2] = (Math.random() - 0.5) * 1000
-    }
+    // for (let i = 0; i < starsCount * 3; i += 3) {
+    //   starsPositions[i] = (Math.random() - 0.5) * 1000
+    //   starsPositions[i + 1] = (Math.random() - 0.5) * 1000
+    //   starsPositions[i + 2] = (Math.random() - 0.5) * 1000
+    //   starsColors[i] = Math.random()
+    //   starsColors[i + 1] = Math.random()
+    //   starsColors[i + 2] = Math.random()
+    // }
 
-    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3))
-    const starsMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.1,
-      transparent: true,
-      opacity: 0.8,
-      sizeAttenuation: true
-    })
-    const stars = new THREE.Points(starsGeometry, starsMaterial)
-    // scene.add(stars)
+    // starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3))
+    // starsGeometry.setAttribute('color', new THREE.BufferAttribute(starsColors, 3))
+    // const starsMaterial = new THREE.PointsMaterial({
+    //   size: 0.1,
+    //   vertexColors: THREE.VertexColors,
+    //   transparent: true,
+    //   opacity: 0.8,
+    //   sizeAttenuation: true
+    // })
+    // const stars = new THREE.Points(starsGeometry, starsMaterial)
+    //  scene.add(stars)
 
     // Add skybox
     const skyboxGeometry = new THREE.SphereGeometry(500, 60, 40)
     const skyboxMaterial = new THREE.MeshBasicMaterial({
-      // map: textures.stars,
+       map: textures.stars,
       side: THREE.BackSide,
-      color: 0x000000
-      // color:new THREE.Color(0xffffff).multiplyScalar(0.5)
+      // color: 0x000000
+      color:new THREE.Color(0xffffff).multiplyScalar(0.3)
 
     })
     const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial)
@@ -168,23 +169,6 @@ export default function SolarSystem() {
     }
 
 
-    // Saturn's Rings
-    // const createSaturnRings = () => {
-    //   const geometry = new THREE.RingGeometry(13.5, 20, 64)
-    //   const material = new THREE.MeshPhongMaterial({
-    //     color: 0xffff00,
-    //     side: THREE.DoubleSide,
-    //     opacity: 1,
-    //     emissive: new THREE.Color(0xffffff).multiplyScalar(0.9),
-    //     emissiveIntensity: 0.1,
-
-    //     emissiveMap: textures.saturnRing,
-    //     map: textures.saturnRing
-    //   })
-    //   const rings = new THREE.Mesh(geometry, material)
-    //   rings.rotation.x = Math.PI / 3
-    //   return rings
-    // }
     const createSaturnAsteroidRing = () => {
       const asteroidRing = new THREE.Group();
       const asteroidCount = 5000; // Adjust this for performance
@@ -234,257 +218,6 @@ export default function SolarSystem() {
       return moon
     }
 
-    // Planets data with textures and their corresponding loaded textures
-    // const planets = [
-    //   {
-    //     name: 'Sun',
-    //     radius: 5,
-    //     distance: 0,
-    //     texture: textures.sun,
-    //     rotationSpeed: 0.001,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Mercury',
-    //     radius: 1.745,
-    //     distance: 15,
-    //     texture: textures.mercury,
-    //     rotationSpeed: 0.004,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Venus',
-    //     radius: 0.433,
-    //     distance: 22,
-    //     texture: textures.venus,
-    //     rotationSpeed: 0.003,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Earth',
-    //     radius: 0.456,
-    //     distance: 30,
-    //     texture: textures.earth,
-    //     rotationSpeed: 0.010,
-    //     hasMoon: true,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Mars',
-    //     radius: 0.243,
-    //     distance: 35,
-    //     texture: textures.mars,
-    //     rotationSpeed: 0.0018,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Jupiter',
-    //     radius: 5,
-    //     distance: 48,
-    //     texture: textures.jupiter,
-    //     rotationSpeed: 0.001,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Saturn',
-    //     radius: 4.163,
-    //     distance: 60,
-    //     texture: textures.saturn,
-    //     rotationSpeed: 0.0008,
-    //     hasMoon: false,
-    //     hasRings: true
-    //   },
-    //   {
-    //     name: 'Uranus',
-    //     radius: 1.816,
-    //     distance: 70,
-    //     texture: textures.uranus,
-    //     rotationSpeed: 0.0006,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Neptune',
-    //     radius: 1.761,
-    //     distance: 85,
-    //     texture: textures.neptune,
-    //     rotationSpeed: 0.0004,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   }
-    // ]
-    // const planets = [
-    //   {
-    //     name: 'Sun',
-    //     radius: 20, // Sun is still the largest
-    //     distance: 0,
-    //     texture: textures.sun,
-    //     rotationSpeed: 0,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Mercury',
-    //     radius: 0.070,
-    //     distance: 38.7,
-    //     texture: textures.mercury,
-    //     rotationSpeed: 1.4,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Venus',
-    //     radius: 0.174,
-    //     distance: 72.3,
-    //     texture: textures.venus,
-    //     rotationSpeed: 0.4,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Earth',
-    //     radius: 0.183,
-    //     distance: 100,
-    //     texture: textures.earth,
-    //     rotationSpeed: 0.060,
-    //     hasMoon: true,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Mars',
-    //     radius: 0.097,
-    //     distance: 152.4,
-    //     texture: textures.mars,
-    //     rotationSpeed: 0.0018,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Jupiter',
-    //     radius: 2.009,
-    //     distance: 520.1,
-    //     texture: textures.jupiter,
-    //     rotationSpeed: 0.001,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Saturn',
-    //     radius: 1.673,
-    //     distance: 955.4,
-    //     texture: textures.saturn,
-    //     rotationSpeed: 0.0008,
-    //     hasMoon: false,
-    //     hasRings: true
-    //   },
-    //   {
-    //     name: 'Uranus',
-    //     radius: 0.729,
-    //     distance: 1918.3,
-    //     texture: textures.uranus,
-    //     rotationSpeed: 0.0006,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Neptune',
-    //     radius: 0.707,
-    //     distance: 3006.1,
-    //     texture: textures.neptune,
-    //     rotationSpeed: 0.0004,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   }
-    // ];
-
-    // const planets = [
-    //   {
-    //     name: 'Sun',
-    //     radius: 12, // Largest as reference
-    //     distance: 0, // At the center
-    //     texture: textures.sun,
-    //     rotationSpeed: 0.05,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Mercury',
-    //     radius: 1, // Minimum visible size
-    //     distance: 20,
-    //     texture: textures.mercury,
-    //     rotationSpeed: 0.2,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Venus',
-    //     radius: 2.5, // Slightly larger than Mercury
-    //     distance: 40,
-    //     texture: textures.venus,
-    //     rotationSpeed: 0.12,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Earth',
-    //     radius: 3, // Slightly larger than Venus
-    //     distance: 60,
-    //     texture: textures.earth,
-    //     rotationSpeed: 0.5,
-    //     hasMoon: true,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Mars',
-    //     radius: 3.5, // Smaller than Earth
-    //     distance: 90,
-    //     texture: textures.mars,
-    //     rotationSpeed: 0.15,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Jupiter',
-    //     radius: 10, // Largest after the Sun
-    //     distance: 140,
-    //     texture: textures.jupiter,
-    //     rotationSpeed: 0.8,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Saturn',
-    //     radius: 8, // Slightly smaller than Jupiter
-    //     distance: 200,
-    //     texture: textures.saturn,
-    //     rotationSpeed: 0,
-    //     hasMoon: false,
-    //     hasRings: true
-    //   },
-    //   {
-    //     name: 'Uranus',
-    //     radius: 4, // Smaller than Saturn
-    //     distance: 260,
-    //     texture: textures.uranus,
-    //     rotationSpeed: 0.4,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   },
-    //   {
-    //     name: 'Neptune',
-    //     radius: 3.8, // Slightly smaller than Uranus
-    //     distance: 300,
-    //     texture: textures.neptune,
-    //     rotationSpeed: 0.35,
-    //     hasMoon: false,
-    //     hasRings: false
-    //   }
-    // ];
 
     const planets = [
       {
@@ -569,7 +302,62 @@ export default function SolarSystem() {
         hasRings: false
       }
     ];
+
+    // Stars background with independent blinking
+    const starsGeometry = new THREE.BufferGeometry()
+    const starsCount = 500
+    const starsPositions = new Float32Array(starsCount * 3)
+    const starsColors = new Float32Array(starsCount * 3)
+    const starsSizes = new Float32Array(starsCount)
     
+    // Create array to store blink states
+    const starsBlinkStates = new Array(starsCount).fill(null).map(() => ({
+        size: Math.random() * 0.2 + 0.05,
+        nextBlink: Math.random() * 2000,
+        isBlinking: false,
+        blinkPhase: 0
+    }))
+    
+    for (let i = 0; i < starsCount * 3; i += 3) {
+        starsPositions[i] = (Math.random() - 0.5) * 1000
+        starsPositions[i + 1] = (Math.random() - 0.5) * 1000
+        starsPositions[i + 2] = (Math.random() - 0.5) * 1000
+        
+        // More natural star colors
+        const colorChoice = Math.random()
+        if (colorChoice < 0.5) {
+            // White stars
+            starsColors[i] = 1.0
+            starsColors[i + 1] = 1.0
+            starsColors[i + 2] = 1.0
+        } else if (colorChoice < 0.8) {
+            // Bluish stars
+            starsColors[i] = 0.8
+            starsColors[i + 1] = 0.8
+            starsColors[i + 2] = 1.0
+        } else {
+            // Yellowish stars
+            starsColors[i] = 1.0
+            starsColors[i + 1] = 1.0
+            starsColors[i + 2] = 0.8
+        }
+    }
+    
+    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3))
+    starsGeometry.setAttribute('color', new THREE.BufferAttribute(starsColors, 3))
+    starsGeometry.setAttribute('size', new THREE.BufferAttribute(starsSizes, 1))
+    
+    const starsMaterial = new THREE.PointsMaterial({
+        size: 0.1,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+        sizeAttenuation: true
+    })
+    
+    const stars = new THREE.Points(starsGeometry, starsMaterial)
+    scene.add(stars)
+
     
     // Create and add asteroid belt
     const asteroidBelt = createAsteroidBelt()
@@ -704,6 +492,7 @@ export default function SolarSystem() {
           scene.add(planetGroup)
 
           return { group: planetGroup, ...planet }
+          
         })
       )
 
@@ -764,6 +553,32 @@ export default function SolarSystem() {
       // billboardUpdate()
       composer.render()
 
+const sizeAttribute = starsGeometry.attributes.size
+starsBlinkStates.forEach((state, i) => {
+    state.nextBlink -= 16.67 // Approx time for 60fps
+
+    if (state.nextBlink <= 0) {
+        if (!state.isBlinking && Math.random() < 0.1) { // 10% chance to start blinking
+            state.isBlinking = true
+            state.blinkPhase = 0
+        }
+        state.nextBlink = Math.random() * 2000 + 1000 // 1-3 seconds until next potential blink
+    }
+
+    if (state.isBlinking) {
+        state.blinkPhase += 0.1
+        const blinkValue = Math.sin(state.blinkPhase) * 0.5 + 0.5
+        sizeAttribute.array[i] = state.size * blinkValue
+
+        if (state.blinkPhase >= Math.PI) {
+            state.isBlinking = false
+            sizeAttribute.array[i] = state.size
+        }
+        sizeAttribute.needsUpdate = true
+    } else {
+        sizeAttribute.array[i] = state.size
+    }
+})
       frameId = requestAnimationFrame(() => animate(planetObjects))
     }
 
@@ -794,7 +609,7 @@ export default function SolarSystem() {
 
   return (
     <div className="relative w-full h-screen bg-black">
-      {loading && (
+      <Suspense fallback={
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white">
           <p className="text-xl italic mb-4">Fetching stellar data...</p>
           <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
@@ -804,8 +619,21 @@ export default function SolarSystem() {
             />
           </div>
         </div>
-      )}
-      <div ref={containerRef} className="w-full h-full" />
+      }>
+        {loading ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white">
+            <p className="text-xl italic mb-4">Loading...</p>
+            <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white transition-all duration-300 rounded-full"
+                style={{ width: `${loadingProgress}%` }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div ref={containerRef} className="w-full h-full" />
+        )}
+      </Suspense>
     </div>
   )
 
