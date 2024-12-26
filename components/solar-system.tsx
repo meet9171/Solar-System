@@ -567,16 +567,30 @@ starsBlinkStates.forEach((state, i) => {
   return (
     <div className="relative w-full h-screen bg-black">
     {loading ? (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white">
-        <div className="space-y-4 flex flex-col items-center">
-          <div className="mb-8">
-          <SunIcon className="animate-pulse-spin text-yellow-400 w-12 h-12" />
-
-          </div>
-          <h2 className="text-2xl font-bold text-center">Loading Solar System</h2>
-        
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-black via-gray-900 to-black text-white">
+      <div className="space-y-8 flex flex-col items-center text-center">
+        {/* <!-- Animated Sun Icon --> */}
+        <div className="mb-6">
+          <SunIcon className="animate-spin-slow text-yellow-400 w-16 h-16 drop-shadow-lg" />
         </div>
+        
+        {/* <!-- Heading --> */}
+        <h2 className="text-4xl font-extrabold tracking-wide text-yellow-400 drop-shadow-md">
+          Welcome to the Solar System
+        </h2>
+        
+        {/* <!-- Subheading --> */}
+        <p className="text-lg text-gray-300 max-w-lg leading-relaxed px-4">
+          Embark on a mesmerizing journey through the celestial bodies and experience the wonders of space exploration. 
+          This project showcases a stunning <span className="text-yellow-400 font-medium">Three.js</span> example crafted by the <span className="text-yellow-400 font-medium">Node JS</span> team at 
+          <span className="text-yellow-400 font-medium"> Coderkube Technologies</span>.
+        </p>
+        
+        {/* <!-- Decorative Glow Effect --> */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-400 opacity-20 rounded-full blur-3xl animate-pulse"></div>
       </div>
+    </div>
+    
     ) : (
       <div ref={containerRef} className="w-full h-full" />
     )}
