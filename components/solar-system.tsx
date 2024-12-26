@@ -1,6 +1,6 @@
 'use client'
 
-import {  useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
@@ -11,13 +11,13 @@ import { SunIcon } from 'lucide-react'
 // Import your downloaded Lottie animation JSON
 
 export default function SolarSystem() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [loading, setLoading] = useState(true)
-  const [textures, setTextures] = useState<Record<string, THREE.Texture | null>>({})
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [textures, setTextures] = useState<Record<string, THREE.Texture | null>>({});
 
   useEffect(() => {
-    const textureLoader = new THREE.TextureLoader()
-
+    const textureLoader = new THREE.TextureLoader();
+    THREE.Cache.enabled = true; // Enable texture caching
 
     const textureFiles = {
       sun: '/8k_sun.jpg',
@@ -42,40 +42,30 @@ export default function SolarSystem() {
           textureLoader.load(path, (texture) => {
             loadedTextures[key] = texture
             resolve(texture)
-          })
-        })
+          });
+        });
       })
     ).then(() => {
       setTextures(loadedTextures)
       setLoading(false)
     })
-
-    // Rest of your scene setup code goes here, but move it inside a useEffect that depends on textures being loaded
   }, [])
 
-
-  
   useEffect(() => {
     if (!containerRef.current || loading || Object.keys(textures).length === 0) return
-    // if (!containerRef.current) return
 
     // Scene setup
     const scene = new THREE.Scene()
-
     const camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
       1200
     )
-    camera.position.z = 50
-    camera.position.y = 30
+    camera.position.set(0, 30, 50);
 
     // Renderer setup with shadows
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-
-    })
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -85,27 +75,28 @@ export default function SolarSystem() {
     containerRef.current?.appendChild(renderer.domElement)
 
     // Post processing
-    const composer = new EffectComposer(renderer)
-    const renderPass = new RenderPass(scene, camera)
-    composer.addPass(renderPass)
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
 
     // Controls
-    const controls = new OrbitControls(camera, renderer.domElement)
-    controls.enableDamping = true
-    controls.dampingFactor = 0.05
-    controls.maxDistance = 500
-    controls.minDistance = 10
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxDistance = 500;
+    controls.minDistance = 10;
+
+    // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.05)
     scene.add(ambientLight)
 
-    // Add spherical sunlight (point light)
     const sunlight = new THREE.PointLight(0xffffff, 10, 100000, 0.6);
     sunlight.position.set(0, 0, 0);
-    scene.add(sunlight);
     sunlight.castShadow = true
     sunlight.shadow.bias = -0.0001;
     sunlight.shadow.normalBias = 0.0001;
-
+    scene.add(sunlight);
+    
     // Softer bloom effect for natural glow
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
@@ -118,11 +109,9 @@ export default function SolarSystem() {
     // Add skybox
     const skyboxGeometry = new THREE.SphereGeometry(500, 60, 40)
     const skyboxMaterial = new THREE.MeshBasicMaterial({
-       map: textures.stars,
+      map: textures.stars,
       side: THREE.BackSide,
-      // color: 0x000000
-      color:new THREE.Color(0xffffff).multiplyScalar(0.3)
-
+      color: new THREE.Color(0xffffff).multiplyScalar(0.3)
     })
     const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial)
     scene.add(skybox)
@@ -177,35 +166,35 @@ export default function SolarSystem() {
         color: 0xffffff,
         roughness: 0.8,
       });
-    
+
       for (let i = 0; i < asteroidCount; i++) {
         const asteroid = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
         const angle = Math.random() * Math.PI * 2;
-    
+
         // Set the radius for the asteroid ring (similar to Saturn's original ring size)
         const radius = 13.5 + Math.random() * 6.5; // Inner radius: 13.5, outer radius: 20
-    
+
         asteroid.position.x = Math.cos(angle) * radius;
         asteroid.position.z = Math.sin(angle) * radius;
-    
+
         // Slight thickness to make it more 3D
         asteroid.position.y = (Math.random() - 0.5) * 0.5;
 
         asteroid.rotation.x = Math.random() * Math.PI;
         asteroid.rotation.y = Math.random() * Math.PI;
         asteroid.rotation.z = Math.random() * Math.PI;
-    
+
         asteroid.scale.setScalar(Math.random() * 0.3 + 0.3); // Randomized asteroid sizes
-    
+
         asteroidRing.add(asteroid);
       }
-    
+
       // Rotate the entire ring to match Saturn's tilt
       asteroidRing.rotation.x = Math.PI / 6;
-    
+
       return asteroidRing;
     };
-    
+
 
     // Create Moon
     const createMoon = (planetRadius: number) => {
@@ -225,7 +214,7 @@ export default function SolarSystem() {
         radius: 12, // Largest as reference
         distance: 0, // At the center
         texture: textures.sun,
-        rotationSpeed: 0.02, // Very slow (scaled)
+        rotationSpeed: 0.002, // Very slow (scaled)
         hasMoon: false,
         hasRings: false
       },
@@ -309,56 +298,56 @@ export default function SolarSystem() {
     const starsPositions = new Float32Array(starsCount * 3)
     const starsColors = new Float32Array(starsCount * 3)
     const starsSizes = new Float32Array(starsCount)
-    
+
     // Create array to store blink states
     const starsBlinkStates = new Array(starsCount).fill(null).map(() => ({
-        size: Math.random() * 0.2 + 0.05,
-        nextBlink: Math.random() * 2000,
-        isBlinking: false,
-        blinkPhase: 0
+      size: Math.random() * 0.2 + 0.05,
+      nextBlink: Math.random() * 2000,
+      isBlinking: false,
+      blinkPhase: 0
     }))
-    
+
     for (let i = 0; i < starsCount * 3; i += 3) {
-        starsPositions[i] = (Math.random() - 0.5) * 1000
-        starsPositions[i + 1] = (Math.random() - 0.5) * 1000
-        starsPositions[i + 2] = (Math.random() - 0.5) * 1000
-        
-        // More natural star colors
-        const colorChoice = Math.random()
-        if (colorChoice < 0.5) {
-            // White stars
-            starsColors[i] = 1.0
-            starsColors[i + 1] = 1.0
-            starsColors[i + 2] = 1.0
-        } else if (colorChoice < 0.8) {
-            // Bluish stars
-            starsColors[i] = 0.8
-            starsColors[i + 1] = 0.8
-            starsColors[i + 2] = 1.0
-        } else {
-            // Yellowish stars
-            starsColors[i] = 1.0
-            starsColors[i + 1] = 1.0
-            starsColors[i + 2] = 0.8
-        }
+      starsPositions[i] = (Math.random() - 0.5) * 1000
+      starsPositions[i + 1] = (Math.random() - 0.5) * 1000
+      starsPositions[i + 2] = (Math.random() - 0.5) * 1000
+
+      // More natural star colors
+      const colorChoice = Math.random()
+      if (colorChoice < 0.5) {
+        // White stars
+        starsColors[i] = 1.0
+        starsColors[i + 1] = 1.0
+        starsColors[i + 2] = 1.0
+      } else if (colorChoice < 0.8) {
+        // Bluish stars
+        starsColors[i] = 0.8
+        starsColors[i + 1] = 0.8
+        starsColors[i + 2] = 1.0
+      } else {
+        // Yellowish stars
+        starsColors[i] = 1.0
+        starsColors[i + 1] = 1.0
+        starsColors[i + 2] = 0.8
+      }
     }
-    
+
     starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3))
     starsGeometry.setAttribute('color', new THREE.BufferAttribute(starsColors, 3))
     starsGeometry.setAttribute('size', new THREE.BufferAttribute(starsSizes, 1))
-    
+
     const starsMaterial = new THREE.PointsMaterial({
-        size: 0.1,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.8,
-        sizeAttenuation: true
+      size: 0.1,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      sizeAttenuation: true
     })
-    
+
     const stars = new THREE.Points(starsGeometry, starsMaterial)
     scene.add(stars)
 
-    
+
     // Create and add asteroid belt
     const asteroidBelt = createAsteroidBelt()
     scene.add(asteroidBelt)
@@ -374,7 +363,7 @@ export default function SolarSystem() {
             displacementScale: 0.05,
             bumpMap: planet.texture,
             bumpScale: 0.02,
-           
+
             shininess: planet.name === 'Sun' ? 0 : 30,
             emissiveMap: planet.texture,
             emissive: planet.name === 'Sun' ? new THREE.Color(0xeae839).multiplyScalar(0.9) : new THREE.Color(0x000000),
@@ -403,31 +392,31 @@ export default function SolarSystem() {
           // Add orbital ring
           if (planet.distance > 0) {
             if (planet.name === 'Mercury') {
-              const ring = createOrbitalRing(planet.distance,0x8105b3)
+              const ring = createOrbitalRing(planet.distance, 0x8105b3)
               scene.add(ring)
             } else if (planet.name === 'Venus') {
-              const ring = createOrbitalRing(planet.distance,0xad8e03)
+              const ring = createOrbitalRing(planet.distance, 0xad8e03)
               scene.add(ring)
             } else if (planet.name === 'Earth') {
-              const ring = createOrbitalRing(planet.distance,0x0371ad)
+              const ring = createOrbitalRing(planet.distance, 0x0371ad)
               scene.add(ring)
             } else if (planet.name === 'Mars') {
-              const ring = createOrbitalRing(planet.distance,0xad6303)
+              const ring = createOrbitalRing(planet.distance, 0xad6303)
               scene.add(ring)
             } else if (planet.name === 'Jupiter') {
-              const ring = createOrbitalRing(planet.distance,0xde9a07)
+              const ring = createOrbitalRing(planet.distance, 0xde9a07)
               scene.add(ring)
             } else if (planet.name === 'Saturn') {
-              const ring = createOrbitalRing(planet.distance,0xb8af06)
+              const ring = createOrbitalRing(planet.distance, 0xb8af06)
               scene.add(ring)
             } else if (planet.name === 'Uranus') {
-              const ring = createOrbitalRing(planet.distance,0x0680b8)
+              const ring = createOrbitalRing(planet.distance, 0x0680b8)
               scene.add(ring)
             } else if (planet.name === 'Neptune') {
-              const ring = createOrbitalRing(planet.distance,0x064ab8)
+              const ring = createOrbitalRing(planet.distance, 0x064ab8)
               scene.add(ring)
             } else {
-              const ring = createOrbitalRing(planet.distance,0x8105b3)
+              const ring = createOrbitalRing(planet.distance, 0x8105b3)
               scene.add(ring)
             }
           }
@@ -451,7 +440,7 @@ export default function SolarSystem() {
           scene.add(planetGroup)
 
           return { group: planetGroup, ...planet }
-          
+
         })
       )
       setTimeout(() => setLoading(false), 500)
@@ -510,32 +499,32 @@ export default function SolarSystem() {
       // billboardUpdate()
       composer.render()
 
-const sizeAttribute = starsGeometry.attributes.size
-starsBlinkStates.forEach((state, i) => {
-    state.nextBlink -= 16.67 // Approx time for 60fps
+      const sizeAttribute = starsGeometry.attributes.size
+      starsBlinkStates.forEach((state, i) => {
+        state.nextBlink -= 16.67 // Approx time for 60fps
 
-    if (state.nextBlink <= 0) {
-        if (!state.isBlinking && Math.random() < 0.1) { // 10% chance to start blinking
+        if (state.nextBlink <= 0) {
+          if (!state.isBlinking && Math.random() < 0.1) { // 10% chance to start blinking
             state.isBlinking = true
             state.blinkPhase = 0
+          }
+          state.nextBlink = Math.random() * 2000 + 1000 // 1-3 seconds until next potential blink
         }
-        state.nextBlink = Math.random() * 2000 + 1000 // 1-3 seconds until next potential blink
-    }
 
-    if (state.isBlinking) {
-        state.blinkPhase += 0.1
-        const blinkValue = Math.sin(state.blinkPhase) * 0.5 + 0.5
-        sizeAttribute.array[i] = state.size * blinkValue
+        if (state.isBlinking) {
+          state.blinkPhase += 0.1
+          const blinkValue = Math.sin(state.blinkPhase) * 0.5 + 0.5
+          sizeAttribute.array[i] = state.size * blinkValue
 
-        if (state.blinkPhase >= Math.PI) {
+          if (state.blinkPhase >= Math.PI) {
             state.isBlinking = false
             sizeAttribute.array[i] = state.size
+          }
+          sizeAttribute.needsUpdate = true
+        } else {
+          sizeAttribute.array[i] = state.size
         }
-        sizeAttribute.needsUpdate = true
-    } else {
-        sizeAttribute.array[i] = state.size
-    }
-})
+      })
       frameId = requestAnimationFrame(() => animate(planetObjects))
     }
 
@@ -566,35 +555,35 @@ starsBlinkStates.forEach((state, i) => {
 
   return (
     <div className="relative w-full h-screen bg-black">
-    {loading ? (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-black via-gray-900 to-black text-white">
-      <div className="space-y-8 flex flex-col items-center text-center">
-        {/* <!-- Animated Sun Icon --> */}
-        <div className="mb-6">
-          <SunIcon className="animate-spin-slow text-yellow-400 w-16 h-16 drop-shadow-lg" />
+      {loading ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-black via-gray-900 to-black text-white">
+          <div className="space-y-8 flex flex-col items-center text-center">
+            {/* <!-- Animated Sun Icon --> */}
+            <div className="mb-6">
+              <SunIcon className="animate-spin-slow text-yellow-400 w-16 h-16 drop-shadow-lg" />
+            </div>
+
+            {/* <!-- Heading --> */}
+            <h2 className="text-4xl font-extrabold tracking-wide text-yellow-400 drop-shadow-md">
+              Welcome to the Solar System
+            </h2>
+
+            {/* <!-- Subheading --> */}
+            <p className="text-lg text-gray-300 max-w-lg leading-relaxed px-4">
+              Embark on a mesmerizing journey through the celestial bodies and experience the wonders of space exploration.
+              This project showcases a stunning <span className="text-yellow-400 font-medium">Three.js</span> example crafted by the <span className="text-yellow-400 font-medium">Node JS</span> team at
+              <span className="text-yellow-400 font-medium"> Coderkube Technologies</span>.
+            </p>
+
+            {/* <!-- Decorative Glow Effect --> */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-400 opacity-20 rounded-full blur-3xl animate-pulse"></div>
+          </div>
         </div>
-        
-        {/* <!-- Heading --> */}
-        <h2 className="text-4xl font-extrabold tracking-wide text-yellow-400 drop-shadow-md">
-          Welcome to the Solar System
-        </h2>
-        
-        {/* <!-- Subheading --> */}
-        <p className="text-lg text-gray-300 max-w-lg leading-relaxed px-4">
-          Embark on a mesmerizing journey through the celestial bodies and experience the wonders of space exploration. 
-          This project showcases a stunning <span className="text-yellow-400 font-medium">Three.js</span> example crafted by the <span className="text-yellow-400 font-medium">Node JS</span> team at 
-          <span className="text-yellow-400 font-medium"> Coderkube Technologies</span>.
-        </p>
-        
-        {/* <!-- Decorative Glow Effect --> */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-400 opacity-20 rounded-full blur-3xl animate-pulse"></div>
-      </div>
+
+      ) : (
+        <div ref={containerRef} className="w-full h-full" />
+      )}
     </div>
-    
-    ) : (
-      <div ref={containerRef} className="w-full h-full" />
-    )}
-  </div>
   )
 
 }
