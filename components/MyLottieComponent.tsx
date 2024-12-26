@@ -1,6 +1,6 @@
 "use client";
 
-import Lottie, { useLottie } from 'lottie-react'
+import { useLottie } from 'lottie-react'
 import jsonAnimation from '../public/Animation.json'
 
 

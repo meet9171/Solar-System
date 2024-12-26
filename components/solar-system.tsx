@@ -1,14 +1,11 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useState } from 'react'
+import {  useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { TextureLoader } from 'three'
-import { useLoader } from '@react-three/fiber'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
-import MyLottieComponent from './MyLottieComponent'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { SunIcon } from 'lucide-react'
 
 // Import your downloaded Lottie animation JSON
@@ -16,17 +13,11 @@ import { SunIcon } from 'lucide-react'
 export default function SolarSystem() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
-  const [loadingProgress, setLoadingProgress] = useState(0)
   const [textures, setTextures] = useState<Record<string, THREE.Texture | null>>({})
 
   useEffect(() => {
-    const loadingManager = new THREE.LoadingManager()
-    const textureLoader = new THREE.TextureLoader(loadingManager)
+    const textureLoader = new THREE.TextureLoader()
 
-    loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
-      const progress = (itemsLoaded / itemsTotal) * 100
-      setLoadingProgress(progress)
-    }
 
     const textureFiles = {
       sun: '/8k_sun.jpg',
@@ -62,6 +53,8 @@ export default function SolarSystem() {
     // Rest of your scene setup code goes here, but move it inside a useEffect that depends on textures being loaded
   }, [])
 
+
+  
   useEffect(() => {
     if (!containerRef.current || loading || Object.keys(textures).length === 0) return
     // if (!containerRef.current) return
@@ -381,8 +374,7 @@ export default function SolarSystem() {
             displacementScale: 0.05,
             bumpMap: planet.texture,
             bumpScale: 0.02,
-            roughness: planet.name === 'Sun' ? 0.05 : 0.9,
-            metalness: 0.5,
+           
             shininess: planet.name === 'Sun' ? 0 : 30,
             emissiveMap: planet.texture,
             emissive: planet.name === 'Sun' ? new THREE.Color(0xeae839).multiplyScalar(0.9) : new THREE.Color(0x000000),
@@ -462,8 +454,6 @@ export default function SolarSystem() {
           
         })
       )
-
-      setLoadingProgress(100)
       setTimeout(() => setLoading(false), 500)
       return planetObjects
     }
