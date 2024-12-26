@@ -8,29 +8,63 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
+import MyLottieComponent from './MyLottieComponent'
+import { SunIcon } from 'lucide-react'
+
+// Import your downloaded Lottie animation JSON
+
 export default function SolarSystem() {
- 
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [loadingProgress, setLoadingProgress] = useState(0)
-
-  // Load all textures at component level
-  const textures = {
-    sun: useLoader(TextureLoader, '/8k_sun.jpg'),
-    mercury: useLoader(TextureLoader, '/8k_mercury.jpg'),
-    venus: useLoader(TextureLoader, '/8k_venus_surface.jpg'),
-    earth: useLoader(TextureLoader, '/8k_earth_daymap.jpg'),
-    mars: useLoader(TextureLoader, '/8k_mars.jpg'),
-    jupiter: useLoader(TextureLoader, '/8k_jupiter.jpg'),
-    saturn: useLoader(TextureLoader, '/8k_saturn.jpg'),
-    uranus: useLoader(TextureLoader, '/2k_uranus.jpg'),
-    neptune: useLoader(TextureLoader, '/2k_neptune.jpg'),
-    moon: useLoader(TextureLoader, '/8k_moon.jpg'),
-    stars: useLoader(TextureLoader, '/8k_stars_milky_way.jpg')
-  }
+  const [textures, setTextures] = useState<Record<string, THREE.Texture | null>>({})
 
   useEffect(() => {
-    if (!containerRef.current) return
+    const loadingManager = new THREE.LoadingManager()
+    const textureLoader = new THREE.TextureLoader(loadingManager)
+
+    loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+      const progress = (itemsLoaded / itemsTotal) * 100
+      setLoadingProgress(progress)
+    }
+
+    const textureFiles = {
+      sun: '/8k_sun.jpg',
+      mercury: '/8k_mercury.jpg',
+      venus: '/8k_venus_surface.jpg',
+      earth: '/8k_earth_daymap.jpg',
+      mars: '/8k_mars.jpg',
+      jupiter: '/8k_jupiter.jpg',
+      saturn: '/8k_saturn.jpg',
+      uranus: '/2k_uranus.jpg',
+      neptune: '/2k_neptune.jpg',
+      moon: '/8k_moon.jpg',
+      stars: '/8k_stars_milky_way.jpg'
+    }
+
+    const loadedTextures: Record<string, THREE.Texture> = {}
+
+    // Load all textures
+    Promise.all(
+      Object.entries(textureFiles).map(([key, path]) => {
+        return new Promise((resolve) => {
+          textureLoader.load(path, (texture) => {
+            loadedTextures[key] = texture
+            resolve(texture)
+          })
+        })
+      })
+    ).then(() => {
+      setTextures(loadedTextures)
+      setLoading(false)
+    })
+
+    // Rest of your scene setup code goes here, but move it inside a useEffect that depends on textures being loaded
+  }, [])
+
+  useEffect(() => {
+    if (!containerRef.current || loading || Object.keys(textures).length === 0) return
+    // if (!containerRef.current) return
 
     // Scene setup
     const scene = new THREE.Scene()
@@ -87,33 +121,6 @@ export default function SolarSystem() {
       0.1     // Lower threshold for more natural glow
     )
     composer.addPass(bloomPass)
-
-    // // Stars background
-    // const starsGeometry = new THREE.BufferGeometry()
-    // const starsCount = 500
-    // const starsPositions = new Float32Array(starsCount * 3)
-    // const starsColors = new Float32Array(starsCount * 3)
-
-    // for (let i = 0; i < starsCount * 3; i += 3) {
-    //   starsPositions[i] = (Math.random() - 0.5) * 1000
-    //   starsPositions[i + 1] = (Math.random() - 0.5) * 1000
-    //   starsPositions[i + 2] = (Math.random() - 0.5) * 1000
-    //   starsColors[i] = Math.random()
-    //   starsColors[i + 1] = Math.random()
-    //   starsColors[i + 2] = Math.random()
-    // }
-
-    // starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPositions, 3))
-    // starsGeometry.setAttribute('color', new THREE.BufferAttribute(starsColors, 3))
-    // const starsMaterial = new THREE.PointsMaterial({
-    //   size: 0.1,
-    //   vertexColors: THREE.VertexColors,
-    //   transparent: true,
-    //   opacity: 0.8,
-    //   sizeAttenuation: true
-    // })
-    // const stars = new THREE.Points(starsGeometry, starsMaterial)
-    //  scene.add(stars)
 
     // Add skybox
     const skyboxGeometry = new THREE.SphereGeometry(500, 60, 40)
@@ -396,46 +403,6 @@ export default function SolarSystem() {
           const planetGroup = new THREE.Group()
           planetGroup.add(mesh)
 
-          const createInclinedOrbitalRing = (radius: number, inclination: number) => {
-            const geometry = new THREE.RingGeometry(radius - 0.1, radius + 0.1, 100);
-            const material = new THREE.MeshBasicMaterial({
-              color: 0x666666,
-              transparent: true,
-              opacity: 0.3,
-              side: THREE.DoubleSide,
-            });
-            const ring = new THREE.Mesh(geometry, material);
-            ring.rotation.x = Math.PI / 2; // Rotate to horizontal first
-            // ring.rotation.y = THREE.MathUtils.degToRad(inclination); // Apply inclination
-            return ring;
-          };
-
-          const createMercuryOrbitalRing = (radius: number, inclination: number) => {
-            const geometry = new THREE.RingGeometry(radius - 0.1, radius + 0.1, 100);
-            const material = new THREE.MeshBasicMaterial({
-              color: 0x666666,
-              transparent: true,
-              opacity: 0.3,
-              side: THREE.DoubleSide,
-            });
-            const ring = new THREE.Mesh(geometry, material);
-            ring.rotation.x = Math.PI / 2; // Rotate to horizontal first
-            ring.rotation.y = THREE.MathUtils.degToRad(inclination); // Apply inclination
-            return ring;
-          };
-          const createVenusOrbitalRing = (radius: number, inclination: number) => {
-            const geometry = new THREE.RingGeometry(radius - 0.1, radius + 0.1, 100);
-            const material = new THREE.MeshBasicMaterial({
-              color: 0x666666,
-              transparent: true,
-              opacity: 0.3,
-              side: THREE.DoubleSide,
-            });
-            const ring = new THREE.Mesh(geometry, material);
-            ring.rotation.x = Math.PI / 2; // Rotate to horizontal first
-            ring.rotation.y = THREE.MathUtils.degToRad(inclination); // Apply inclination
-            return ring;
-          };
 
           if (planet.name === 'Earth') {
 
@@ -605,36 +572,25 @@ starsBlinkStates.forEach((state, i) => {
         containerRef.current.removeChild(renderer.domElement)
       }
     }
-  }, [])
+  }, [loading, textures])
 
   return (
     <div className="relative w-full h-screen bg-black">
-      <Suspense fallback={
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white">
-          <p className="text-xl italic mb-4">Fetching stellar data...</p>
-          <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-white transition-all duration-300 rounded-full"
-              style={{ width: `${loadingProgress}%` }}
-            />
+    {loading ? (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white">
+        <div className="space-y-4 flex flex-col items-center">
+          <div className="mb-8">
+          <SunIcon className="animate-pulse-spin text-yellow-400 w-12 h-12" />
+
           </div>
+          <h2 className="text-2xl font-bold text-center">Loading Solar System</h2>
+        
         </div>
-      }>
-        {loading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white">
-            <p className="text-xl italic mb-4">Loading...</p>
-            <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-white transition-all duration-300 rounded-full"
-                style={{ width: `${loadingProgress}%` }}
-              />
-            </div>
-          </div>
-        ) : (
-          <div ref={containerRef} className="w-full h-full" />
-        )}
-      </Suspense>
-    </div>
+      </div>
+    ) : (
+      <div ref={containerRef} className="w-full h-full" />
+    )}
+  </div>
   )
 
 }

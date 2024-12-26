@@ -76,3 +76,16 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes pulse-spin {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+.animate-pulse-spin {
+  animation: pulse-spin 2s infinite linear;
+}
